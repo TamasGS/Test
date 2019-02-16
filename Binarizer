@@ -1,0 +1,7 @@
+function Binarizer {
+  param($text2byte,$byte2text,$text2md5,$text2sha1)
+  if($text2byte) {[system.Text.Encoding]::Default.GetBytes($text2byte) | %{[System.Convert]::ToString($_,2).PadLeft(8,'0')}}
+  if($byte2text) {($byte2text |%{[char]([convert]::ToInt32($_,2))})-join("")}
+  if($text2md5)  {[System.Web.Security.FormsAuthentication]::HashPasswordForStoringInConfigFile($text2md5,"MD5")}
+  if($text2sha1) {[System.Web.Security.FormsAuthentication]::HashPasswordForStoringInConfigFile($text2sha1,"SHA1")}
+}
