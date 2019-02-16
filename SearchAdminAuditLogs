@@ -1,0 +1,24 @@
+function O365Roles {
+	$script:full=@()
+	foreach ($role in (Get-MsolRole)) {
+		foreach ($staff in (Get-MsolRoleMember -RoleObjectId $role.objectid)){
+			$obj = New-Object PSObject
+			$obj | Add-Member NoteProperty "Role" $role.name
+			$obj | Add-Member NoteProperty "RoleID" $role.objectid
+			$obj | Add-Member NoteProperty "Email" $staff.EmailAddress
+			$obj | Add-Member NoteProperty "DisplayName" $staff.DisplayName
+			$obj | Add-Member NoteProperty "isLicensed" $staff.isLicensed
+			$full+=$obj
+		}
+	}
+}
+
+$zAudit = Search-UnifiedAuditLog -EndDate (date) -StartDate (date).AddDays(-90) -ResultSize 5000 -UserIds ($full| select -Unique -Property displayname).displayname
+$zAudit.count
+if ($zAudit.count -ge 5000) {
+	do {
+		$new = Search-UnifiedAuditLog -EndDate $zAudit[-1].CreationDate -StartDate (date).AddDays(-90) -ResultSize 5000 -UserIds ($full| select -Unique -Property displayname).displayname
+		$zAudit += $new
+		$new.count
+	} while ($new.count -ge 5000)
+}
